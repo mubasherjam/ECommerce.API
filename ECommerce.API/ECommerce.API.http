@@ -1,6 +1,52 @@
-@ECommerce.API_HostAddress = http://localhost:5099
+@ECommerce_API_HostAddress = https://localhost:44347
 
-GET {{ECommerce.API_HostAddress}}/weatherforecast/
+### Get all categories
+GET {{ECommerce_API_HostAddress}}/api/categories
 Accept: application/json
 
 ###
+
+### Get category by ID
+GET {{ECommerce_API_HostAddress}}/api/categories/1
+Accept: application/json
+
+###
+
+### Create category
+POST {{ECommerce_API_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+  "name": "Electronics",
+  "description": "Electronic devices and accessories"
+}
+
+### Create Category
+
+POST {{ECommerce_API_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+  "name": "Electronics",
+  "description": "Electronic devices and accessories"
+}
+
+### Create Product
+
+POST {{ECommerce_API_HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Gaming Laptop",
+  "description": "High performance gaming laptop",
+  "price": 250000,
+  "stockQuantity": 10,
+  "imageUrl": "https://example.com/laptop.jpg",
+  "categoryId": 1
+}
+
+
+### Get Products
+
+GET {{ECommerce_API_HostAddress}}/api/products
+Accept: application/json
