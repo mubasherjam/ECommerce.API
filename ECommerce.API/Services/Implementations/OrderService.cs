@@ -77,6 +77,50 @@ namespace ECommerce.API.Services.Implementations
             return (await GetOrderByIdAsync(userId, order.Id))!;
         }
 
+        public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
+        {
+            return await _context.Orders
+                .OrderByDescending(o => o.OrderDate)
+                .Select(o => new OrderDto
+                {
+                    Id = o.Id,
+                    TotalAmount = o.TotalAmount,
+                    Status = o.Status,
+                    OrderDate = o.OrderDate,
+
+                    Items = o.OrderItems
+                        .Select(item => new OrderItemDto
+                        {
+                            ProductId = item.ProductId,
+                            ProductName = item.Product.Name,
+                            Quantity = item.Quantity,
+                            UnitPrice = item.UnitPrice,
+                            Total = item.UnitPrice * item.Quantity
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+        }
+
+        public async Task<bool> UpdateOrderStatusAsync(
+    int orderId,
+    string status)
+        {
+            var order = await _context.Orders
+                .FindAsync(orderId);
+
+            if (order == null)
+            {
+                return false;
+            }
+
+            order.Status = status;
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<IEnumerable<OrderDto>> GetUserOrdersAsync(
             int userId)
         {

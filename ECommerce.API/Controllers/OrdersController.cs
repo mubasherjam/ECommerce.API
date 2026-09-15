@@ -37,10 +37,53 @@ namespace ECommerce.API.Controllers
             }
         }
 
+        // GET: api/orders/admin/all
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin/all")]
+        public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
+        {
+            var orders = await _orderService.GetAllOrdersAsync();
+
+            return Ok(orders);
+        }
+
+        // PUT: api/orders/admin/1/status
+        [Authorize(Roles = "Admin")]
+        [HttpPut("admin/{id}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(
+            int id,
+            UpdateOrderStatusDto dto)
+        {
+            var validStatuses = new[]
+            {
+        "Pending",
+        "Processing",
+        "Shipped",
+        "Delivered",
+        "Cancelled"
+    };
+
+            if (!validStatuses.Contains(dto.Status))
+            {
+                return BadRequest(
+                    "Invalid order status.");
+            }
+
+            var updated = await _orderService
+                .UpdateOrderStatusAsync(id, dto.Status);
+
+            if (!updated)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
         // GET: api/orders
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrders()
         {
+
             var userId = GetUserId();
 
             var orders =
