@@ -6,15 +6,15 @@
 
         public int UserId { get; set; }
 
-        public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+        public User User { get; set; } = null!;
 
         public decimal TotalAmount { get; set; }
 
         public string Status { get; set; } = "Pending";
 
-        // Navigation properties
-        public User User { get; set; } = null!;
+        public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
-        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public ICollection<OrderItem> OrderItems { get; set; }
+            = new List<OrderItem>();
     }
 }

@@ -1,0 +1,79 @@
+﻿using ECommerce.API.DTOs.Orders;
+using ECommerce.API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace ECommerce.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class OrdersController : ControllerBase
+    {
+        private readonly IOrderService _orderService;
+
+        public OrdersController(IOrderService orderService)
+        {
+            _orderService = orderService;
+        }
+
+        // POST: api/orders
+        [HttpPost]
+        public async Task<ActionResult<OrderDto>> CreateOrder()
+        {
+            try
+            {
+                var userId = GetUserId();
+
+                var order =
+                    await _orderService.CreateOrderAsync(userId);
+
+                return Ok(order);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // GET: api/orders
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrders()
+        {
+            var userId = GetUserId();
+
+            var orders =
+                await _orderService.GetUserOrdersAsync(userId);
+
+            return Ok(orders);
+        }
+
+        // GET: api/orders/1
+        [HttpGet("{id}")]
+        public async Task<ActionResult<OrderDto>> GetOrder(int id)
+        {
+            var userId = GetUserId();
+
+            var order =
+                await _orderService.GetOrderByIdAsync(
+                    userId,
+                    id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(order);
+        }
+
+        private int GetUserId()
+        {
+            return int.Parse(
+                User.FindFirstValue(
+                    ClaimTypes.NameIdentifier)!
+            );
+        }
+    }
+}
