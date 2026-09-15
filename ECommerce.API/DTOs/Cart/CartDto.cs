@@ -1,0 +1,12 @@
+﻿namespace ECommerce.API.DTOs.Cart
+{
+    public class CartDto
+    {
+        public int Id { get; set; }
+
+        public List<CartItemDto> Items { get; set; }
+            = new List<CartItemDto>();
+
+        public decimal Total { get; set; }
+    }
+}
