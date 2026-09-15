@@ -1,11 +1,15 @@
 using ECommerce.API.Data;
+using ECommerce.API.Services.Implementations;
+using ECommerce.API.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<IProductService, ProductService>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(

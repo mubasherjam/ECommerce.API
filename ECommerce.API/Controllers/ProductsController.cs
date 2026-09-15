@@ -1,8 +1,6 @@
-﻿using ECommerce.API.Data;
-using ECommerce.API.DTOs.Products;
-using ECommerce.API.Models;
+﻿using ECommerce.API.DTOs.Products;
+using ECommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.API.Controllers
 {
@@ -10,63 +8,34 @@ namespace ECommerce.API.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IProductService _productService;
 
-        public ProductsController(AppDbContext context)
+        public ProductsController(IProductService productService)
         {
-            _context = context;
+            _productService = productService;
         }
 
         // GET: api/products
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
         {
-            var products = await _context.Products
-                .Include(p => p.Category)
-                .Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    StockQuantity = p.StockQuantity,
-                    ImageUrl = p.ImageUrl,
-                    CategoryId = p.CategoryId,
-                    CategoryName = p.Category.Name,
-                    CreatedAt = p.CreatedAt
-                })
-                .ToListAsync();
+            var products = await _productService.GetAllAsync();
 
-            return products;
+            return Ok(products);
         }
 
         // GET: api/products/1
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDto>> GetProduct(int id)
         {
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .Where(p => p.Id == id)
-                .Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    StockQuantity = p.StockQuantity,
-                    ImageUrl = p.ImageUrl,
-                    CategoryId = p.CategoryId,
-                    CategoryName = p.Category.Name,
-                    CreatedAt = p.CreatedAt
-                })
-                .FirstOrDefaultAsync();
+            var product = await _productService.GetByIdAsync(id);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            return product;
+            return Ok(product);
         }
 
         // POST: api/products
@@ -74,49 +43,12 @@ namespace ECommerce.API.Controllers
         public async Task<ActionResult<ProductDto>> CreateProduct(
             CreateProductDto dto)
         {
-            var categoryExists = await _context.Categories
-                .AnyAsync(c => c.Id == dto.CategoryId);
-
-            if (!categoryExists)
-            {
-                return BadRequest("The specified category does not exist.");
-            }
-
-            var product = new Product
-            {
-                Name = dto.Name,
-                Description = dto.Description,
-                Price = dto.Price,
-                StockQuantity = dto.StockQuantity,
-                ImageUrl = dto.ImageUrl,
-                CategoryId = dto.CategoryId
-            };
-
-            _context.Products.Add(product);
-
-            await _context.SaveChangesAsync();
-
-            var result = await _context.Products
-                .Include(p => p.Category)
-                .Where(p => p.Id == product.Id)
-                .Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    StockQuantity = p.StockQuantity,
-                    ImageUrl = p.ImageUrl,
-                    CategoryId = p.CategoryId,
-                    CategoryName = p.Category.Name,
-                    CreatedAt = p.CreatedAt
-                })
-                .FirstAsync();
+            var product = await _productService.CreateAsync(dto);
 
             return CreatedAtAction(
                 nameof(GetProduct),
                 new { id = product.Id },
-                result
+                product
             );
         }
 
@@ -126,29 +58,12 @@ namespace ECommerce.API.Controllers
             int id,
             UpdateProductDto dto)
         {
-            var product = await _context.Products.FindAsync(id);
+            var updated = await _productService.UpdateAsync(id, dto);
 
-            if (product == null)
+            if (!updated)
             {
                 return NotFound();
             }
-
-            var categoryExists = await _context.Categories
-                .AnyAsync(c => c.Id == dto.CategoryId);
-
-            if (!categoryExists)
-            {
-                return BadRequest("The specified category does not exist.");
-            }
-
-            product.Name = dto.Name;
-            product.Description = dto.Description;
-            product.Price = dto.Price;
-            product.StockQuantity = dto.StockQuantity;
-            product.ImageUrl = dto.ImageUrl;
-            product.CategoryId = dto.CategoryId;
-
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -157,16 +72,12 @@ namespace ECommerce.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var deleted = await _productService.DeleteAsync(id);
 
-            if (product == null)
+            if (!deleted)
             {
                 return NotFound();
             }
-
-            _context.Products.Remove(product);
-
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
